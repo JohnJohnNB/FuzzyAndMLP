@@ -33,11 +33,11 @@ massa['média alta'] = fuzz.trimf(massa.universe, [56, 67, 77])
 massa['alta'] = fuzz.trapmf(massa.universe, [58, 70, 80, 80])
 
 # Para altura
-altura['baixa'] = fuzz.trapmf(altura.universe, [157, 157, 162, 163])  # Trapézio
-altura['média baixa'] = fuzz.trimf(altura.universe, [162, 165, 168])  # Triângulo
-altura['média'] = fuzz.trimf(altura.universe, [167, 170, 173])        # Triângulo
-altura['média alta'] = fuzz.trimf(altura.universe, [172, 175, 178])   # Triângulo
-altura['alta'] = fuzz.trapmf(altura.universe, [177, 180, 183, 183])   # Trapézio
+altura['baixa'] = fuzz.trapmf(altura.universe, [157, 157, 162, 163])
+altura['média baixa'] = fuzz.trimf(altura.universe, [162, 165, 168])
+altura['média'] = fuzz.trimf(altura.universe, [167, 170, 173])
+altura['média alta'] = fuzz.trimf(altura.universe, [172, 175, 178])
+altura['alta'] = fuzz.trapmf(altura.universe, [177, 180, 183, 183])
 
 # Para grau de risco
 grau_risco['saudável'] = fuzz.trapmf(grau_risco.universe, [18, 18, 23, 25])
@@ -95,25 +95,25 @@ altura_values = np.linspace(157, 183, 32)
 data = []
 
 # Vai iterar sobre as combinações de massa e altura e fornecer uma saída
-# for massa_val in massa_values:
-#     for altura_val in altura_values:
-#         sistema.input['massa'] = massa_val
-#         sistema.input['altura'] = altura_val
-#         sistema.compute()
-# 
-#         # Pega saída, que é o grau de risco
-#         grau_risco_val = sistema.output['grau_risco']
-# 
-#         # Adiciona entradas e saída na lista, para posteriormente salvar como csv
-#         data.append([massa_val, altura_val, grau_risco_val])
+for massa_val in massa_values:
+    for altura_val in altura_values:
+        sistema.input['massa'] = massa_val
+        sistema.input['altura'] = altura_val
+        sistema.compute()
+
+        # Pega saída, que é o grau de risco
+        grau_risco_val = sistema.output['grau_risco']
+
+        # Adiciona entradas e saída na lista, para posteriormente salvar como csv
+        data.append([massa_val, altura_val, grau_risco_val])
 
 # Converter lista para DataFrame
-#df = pd.DataFrame(data, columns=['Massa', 'Altura', 'Grau de Risco'])
+df = pd.DataFrame(data, columns=['Massa', 'Altura', 'Grau de Risco'])
 
-df = pd.read_csv('banco_dados_fuzzy.csv')
+#df = pd.read_csv('banco_dados_fuzzy.csv')
 
 # Salva banco de dados em um arquivo CSV
-#df.to_csv('banco_dados_fuzzy.csv', index=False)
+df.to_csv('banco_dados_fuzzy.csv', index=False)
 
 # Treinamento do modelo
 
@@ -124,24 +124,22 @@ y = df['Grau de Risco'].values
 # Divisão dos dados em conjuntos de treinamento e teste
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=1) # 20% para testes
 
-# 3. Escalar os dados (opcional, mas recomendado para redes neurais)
+#
 scaler = StandardScaler()
 X_train_scaled = scaler.fit_transform(X_train)
 X_test_scaled = scaler.transform(X_test)
 
 # Treinamento do modelo de regressão usando MLP
-#mlp = MLPRegressor(hidden_layer_sizes=(10, 10), activation='relu', max_iter=1000, random_state=1)
-#mlp.fit(X_train_scaled, y_train)
-mlp = MLPRegressor(random_state=1, max_iter=1000)
-mlp.fit(X_train_scaled, y_train)
+model = MLPRegressor(random_state=1, max_iter=1000)
+model.fit(X_train_scaled, y_train)
 
 # Efetuando predições
-predictions = mlp.predict(X_test_scaled)
+predictions = model.predict(X_test_scaled)
 
 # Cálculo do Erro Quadrático Médio (MSE)
 mse = mean_squared_error(y_test, predictions)
 
 # Resultados
 print("Erro Quadrático Médio (MSE):", mse)
-print("R² Score (Treinamento):", mlp.score(X_train_scaled, y_train))
-print("R² Score (Teste):", mlp.score(X_test_scaled, y_test))
+print("R² Score (Treinamento):", model.score(X_train_scaled, y_train))
+print("R² Score (Teste):", model.score(X_test_scaled, y_test))
