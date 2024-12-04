@@ -107,7 +107,7 @@ for massa_val in massa_values:
         # Adiciona entradas e saída na lista, para posteriormente salvar como csv
         data.append([massa_val, altura_val, grau_risco_val])
 
-# Converter lista para DataFrame
+# Converte lista para DataFrame
 df = pd.DataFrame(data, columns=['Massa', 'Altura', 'Grau de Risco'])
 
 #df = pd.read_csv('banco_dados_fuzzy.csv')
@@ -124,7 +124,7 @@ y = df['Grau de Risco'].values
 # Divisão dos dados em conjuntos de treinamento e teste
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=1) # 20% para testes
 
-#
+# Normaliza os dados para que fiquem entre 0 e 1
 scaler = StandardScaler()
 X_train_scaled = scaler.fit_transform(X_train)
 X_test_scaled = scaler.transform(X_test)
@@ -139,7 +139,26 @@ predictions = model.predict(X_test_scaled)
 # Cálculo do Erro Quadrático Médio (MSE)
 mse = mean_squared_error(y_test, predictions)
 
-# Resultados
+# Teste do sistema fuzzy e MLP com as seguintes entradas
+valores_demonstracao = [(73, 175), (70, 165), (80, 160)]
+
+for massa, altura in valores_demonstracao:
+    # Escala as entradas para o modelo
+    entrada = scaler.transform([[massa, altura]])
+
+    # Calcula saída usando o sistema fuzzy
+    sistema.input['massa'] = massa
+    sistema.input['altura'] = altura
+    sistema.compute()
+
+    # Faz predição usando o modelo treinado
+    predicao = model.predict(entrada)
+    
+    print(f'Sistema fuzzy: Grau de risco para massa {massa} e altura {altura}: ', sistema.output['grau_risco'])
+    print(f"Modelo treinado: Previsão de grau de risco para massa {massa} e altura {altura}: {predicao[0]:.2f}")
+    print(f"-------------------------------")
+
+# Resultados finais
 print("Erro Quadrático Médio (MSE):", mse)
-print("R² Score (Treinamento):", model.score(X_train_scaled, y_train))
-print("R² Score (Teste):", model.score(X_test_scaled, y_test))
+print("Score (R2) - Treinamento:", model.score(X_train_scaled, y_train))
+print("Score (R2) - Teste:", model.score(X_test_scaled, y_test))
